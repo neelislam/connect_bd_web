@@ -1,85 +1,62 @@
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy 
-} from "firebase/firestore";
-import { db } from "./clientApp";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  where,
+  serverTimestamp,
+  QueryConstraint,
+} from 'firebase/firestore';
+import { db } from '../../firebase/firestore';
 
-// 1. Re-export db so files importing it from '@/firebase/firestore' don't break
-export { db };
-
-// 2. Existing functions for the feeds
+// Create a post in the specified collection
 export const createPost = async (collectionName: string, data: any) => {
-  try {
-    const docRef = await addDoc(collection(db, collectionName), {
-      ...data,
-      createdAt: new Date().toISOString()
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error("Error adding document: ", error);
-    throw error;
-  }
+  const docRef = await addDoc(collection(db, collectionName), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
 };
 
+// Get posts filtered by district (client-side filter fallback)
 export const getPostsByDistrict = async (collectionName: string, district: string) => {
-  const q = query(collection(db, collectionName), orderBy("createdAt", "desc"));
+  const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
   const allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-  // Filter client side due to array/or query limitations in basic firestore setup
-  return allPosts.filter((p: any) => 
-    p.fromDivision === district || p.toDivision === district || p.district === district
-  );
+  return allPosts.filter((p: any) => p.fromDivision === district || p.toDivision === district || p.district === district);
 };
 
-// 3. New CRUD helper functions requested by PostCard.tsx and AuthContext.tsx
+// Generic CRUD helpers
 export const addDocument = async (collectionName: string, data: any) => {
-  try {
-    const docRef = await addDoc(collection(db, collectionName), data);
-    return docRef.id;
-  } catch (error) {
-    console.error("Error adding document: ", error);
-    throw error;
-  }
+  const docRef = await addDoc(collection(db, collectionName), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
 };
 
 export const getDocument = async (collectionName: string, id: string) => {
-  try {
-    const docRef = doc(db, collectionName, id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error getting document: ", error);
-    throw error;
-  }
+  const docRef = doc(db, collectionName, id);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) return { id: snap.id, ...snap.data() };
+  return null;
 };
 
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
-  try {
-    const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, data);
-  } catch (error) {
-    console.error("Error updating document: ", error);
-    throw error;
-  }
+  await updateDoc(doc(db, collectionName, id), data);
 };
 
 export const deleteDocument = async (collectionName: string, id: string) => {
-  try {
-    const docRef = doc(db, collectionName, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error("Error deleting document: ", error);
-    throw error;
-  }
+  await deleteDoc(doc(db, collectionName, id));
+};
+
+export const queryCollection = async (collectionName: string, constraints: QueryConstraint[]) => {
+  const q = query(collection(db, collectionName), ...constraints);
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
