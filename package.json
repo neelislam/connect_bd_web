@@ -20,6 +20,12 @@
     "react-hot-toast": "^2.4.1",
     "zod": "^3.22.4"
   },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not IE_Mob 11",
+    "maintained node versions"
+  ],
   "devDependencies": {
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
