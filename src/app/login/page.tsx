@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 // import { bdLocations } from "@/data/locations";
 
 // To this:
-import { auth, db } from "../../firebase/config";
+import { auth, db } from "@/firebase/clientApp";
 import { bdLocations } from "../../data/locations";
 
 export default function LoginPage() {
