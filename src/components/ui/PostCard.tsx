@@ -1,71 +1,69 @@
-'use client';
-
-import { TravelPost, MedicalService, ServicePost } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+'use client'
+import { motion } from 'framer-motion';
 import { deleteDocument } from '@/firebase/firestore';
-import toast from 'react-hot-toast';
+import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
-interface PostCardProps {
-  post: TravelPost | MedicalService | ServicePost;
-  type: 'travel' | 'medical' | 'service';
+export interface PostCardProps {
+  id?: string;
+  title?: string;
+  summary?: string;
+  status?: string;
+  collectionName?: string; // Used if you want the delete button to work
+  // This catch-all prevents TS errors if other feeds pass different props
+  [key: string]: any; 
 }
 
-export default function PostCard({ post, type }: PostCardProps) {
-  const { user } = useAuth();
-  const isOwner = post.id && user?.uid === (post as any).userId;
+export default function PostCard({ id, title, summary, status, collectionName, ...rest }: PostCardProps) {
+  const [isDeleted, setIsDeleted] = useState(false);
 
   const handleDelete = async () => {
-    if (!post.id || !confirm('Delete this post?')) return;
+    if (!id || !collectionName) return;
     try {
-      const collectionMap = {
-        travel: 'travelPosts',
-        medical: 'medicalServices',
-        service: 'servicePosts',
-      };
-      await deleteDocument(collectionMap[type], post.id);
-      toast.success('Deleted');
-    } catch {
-      toast.error('Failed to delete');
+      await deleteDocument(collectionName, id);
+      setIsDeleted(true); // Hide the card from the UI immediately
+    } catch (error) {
+      console.error("Error deleting document:", error);
     }
   };
 
-  // Render different content based on type
-  if (type === 'travel') {
-    const p = post as TravelPost;
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 border-l-4 border-blue-500">
-        <div className="flex justify-between">
-          <span className={`text-xs font-bold ${p.isPassengerPost ? 'text-red-500' : 'text-blue-500'}`}>
-            {p.isPassengerPost ? 'PASSENGER' : 'RIDER'}
-          </span>
-          <span className="text-xs text-gray-500">{p.date} {p.time}</span>
-        </div>
-        <div className="my-2">
-          <p className="text-lg font-bold">{p.fromDivision} → {p.toDivision}</p>
-          {p.intermediateStops && p.intermediateStops.length > 0 && (
-            <p className="text-sm text-gray-500">via {p.intermediateStops.join(', ')}</p>
-          )}
-        </div>
-        <div className="flex gap-4 text-sm">
-          <span>🚗 {p.vehicleType}</span>
-          {p.rentOffer && <span>💰 {p.rentOffer}</span>}
-        </div>
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-          <div>
-            <p className="font-medium">{p.driverName}</p>
-            <p className="text-sm text-gray-500">{p.contactNumber}</p>
-          </div>
-          <div className="flex gap-2">
-            {isOwner && (
-              <button onClick={handleDelete} className="text-red-500 text-sm">Delete</button>
-            )}
-            <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm">Connect</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (isDeleted) return null;
 
-  // Similar for medical and service...
-  return <div>Post type not implemented</div>;
+  return (
+    <motion.div
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="bg-white/90 dark:bg-brand-card/90 backdrop-blur-md p-6 rounded-3xl border border-brand-blue/20 shadow-lg relative mb-4"
+    >
+      <div className="flex justify-between items-start mb-4">
+        {status && (
+          <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${status === 'Verified' ? 'bg-green-500' : 'bg-orange-500'}`}>
+            {status.toUpperCase()}
+          </span>
+        )}
+        
+        {/* Delete Button */}
+        {id && collectionName && (
+          <button 
+            onClick={handleDelete}
+            className="text-red-500 hover:bg-red-500/10 p-2 rounded-full transition-colors ml-auto"
+            title="Delete Post"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
+      </div>
+
+      {title && <h2 className="text-2xl font-black dark:text-white mb-2">{title}</h2>}
+      {summary && <p className="text-gray-600 dark:text-gray-300 mb-4">{summary}</p>}
+
+      {/* Render extra common props if they are passed from other feeds */}
+      <div className="flex flex-col gap-2">
+        {rest.driverName && <p className="text-sm dark:text-gray-400"><strong>Name:</strong> {rest.driverName}</p>}
+        {rest.contactNumber && <p className="text-sm dark:text-gray-400"><strong>Contact:</strong> {rest.contactNumber}</p>}
+        {rest.time && <p className="text-sm dark:text-gray-400"><strong>Time:</strong> {rest.time}</p>}
+        {rest.priceOffer && <p className="text-sm dark:text-gray-400"><strong>Offer:</strong> {rest.priceOffer}</p>}
+      </div>
+    </motion.div>
+  );
 }
