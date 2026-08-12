@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { auth, db } from "@/firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+// Change this:
+// import { auth, db } from "@/firebase/config";
 
+// To this:
+import { auth, db } from "../../firebase/config";
 // Define a type for your user data
 interface UserProfile {
   name: string;

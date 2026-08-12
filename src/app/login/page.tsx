@@ -1,10 +1,17 @@
 "use client";
 import { useState } from "react";
-import { auth, db } from "@/firebase/config";
 import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { bdLocations } from "@/data/locations";
+
 import { useRouter } from "next/navigation";
+
+// Change these:
+// import { auth, db } from "@/firebase/config";
+// import { bdLocations } from "@/data/locations";
+
+// To this:
+import { auth, db } from "../../firebase/config";
+import { bdLocations } from "../../data/locations";
 
 export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -13,7 +20,7 @@ export default function LoginPage() {
   const router = useRouter();
   
   const [phone, setPhone] = useState("");
-  const [division, setDivision] = useState("");
+  const [division, setDivision] = useState<keyof typeof bdLocations | "">("");
   const [district, setDistrict] = useState("");
 
   const handleGoogleLogin = async () => {
@@ -97,7 +104,7 @@ export default function LoginPage() {
 
           <div className="flex flex-col gap-1">
             <label className="font-semibold text-sm">Division</label>
-            <select required value={division} onChange={(e) => { setDivision(e.target.value); setDistrict(""); }} className="p-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select required value={division} onChange={(e) => { setDivision(e.target.value as keyof typeof bdLocations | ""); setDistrict(""); }} className="p-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 bg-white">
               <option value="">Select Division</option>
               {Object.keys(bdLocations).map((div) => (
                 <option key={div} value={div}>{div}</option>
@@ -109,7 +116,7 @@ export default function LoginPage() {
             <label className="font-semibold text-sm">District</label>
             <select required value={district} onChange={(e) => setDistrict(e.target.value)} disabled={!division} className="p-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 bg-white">
               <option value="">Select District</option>
-              {division && bdLocations[division].map((dist) => (
+              {division && bdLocations[division].map((dist: string) => (
                 <option key={dist} value={dist}>{dist}</option>
               ))}
             </select>
