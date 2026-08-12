@@ -1,36 +1,21 @@
-'use client';
-
+'use client'
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useTheme as useNextTheme } from 'next-themes';
 
-type ThemeContextType = {
-  theme: string | undefined;
-  toggleTheme: () => void;
-};
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext({ isDark: true, toggleTheme: () => {} });
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { theme, setTheme } = useNextTheme();
-  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
-  useEffect(() => setMounted(true), []);
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
-  if (!mounted) return null;
+  useEffect(() => {
+    if (isDark) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [isDark]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme: () => setIsDark(!isDark) }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error('useTheme must be used within ThemeProvider');
-  return context;
-};
+export const useTheme = () => useContext(ThemeContext);

@@ -1,36 +1,28 @@
-'use client';
-
-import { useParams, useRouter } from 'next/navigation';
+'use client'
 import { mockCategories } from '@/lib/constants/mockData';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import Header from '@/components/layout/Header';
+import { ChevronRight } from 'lucide-react';
 
-export default function SubCategoryPage() {
-  const { categoryId } = useParams();
-  const router = useRouter();
-  const category = mockCategories.find(c => c.id === categoryId);
-  if (!category) return <div>Category not found</div>;
+export default function CategoryDetails({ params }: { params: { categoryId: string } }) {
+  const category = mockCategories.find(c => c.id === params.categoryId);
+  if (!category) return null;
 
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">{category.title}</h1>
-        <div className="space-y-4 max-w-2xl mx-auto">
-          {category.subCategories.map((sub, index) => (
-            <motion.div
-              key={sub.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex justify-between items-center cursor-pointer hover:shadow-lg transition"
-              onClick={() => router.push(`/divisions/${categoryId}/${sub.id}`)}
+    <div className="max-w-3xl mx-auto px-4 pt-8">
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">{category.title}</h1>
+      <div className="flex flex-col gap-4">
+        {category.subCategories.map((sub, index) => (
+          <Link href={`/divisions/${category.id}/${sub.id}`} key={sub.id}>
+            <motion.div 
+              initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: index * 0.1 }}
+              className="flex justify-between items-center p-6 bg-white dark:bg-brand-card rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 hover:border-brand-blue transition"
             >
-              <span className="text-lg font-medium">{sub.title}</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-xl font-bold dark:text-white">{sub.title}</span>
+              <ChevronRight className="text-gray-400" />
             </motion.div>
-          ))}
-        </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

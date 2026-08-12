@@ -1,61 +1,28 @@
-'use client';
-
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+'use client'
 import { bangladeshLocations } from '@/lib/constants/locations';
-import Header from '@/components/layout/Header';
-import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useState } from 'react';
 
-export default function DistrictListPage() {
-  const { divisionName, categoryId, subCategoryId } = useParams();
-  const router = useRouter();
-  const districts = bangladeshLocations[divisionName as string] || [];
+export default function Districts({ params }: { params: { divisionName: string, categoryId: string, subCategoryId: string } }) {
   const [search, setSearch] = useState('');
-  const filtered = districts.filter(d => d.toLowerCase().includes(search.toLowerCase()));
-
-  const handleDistrictClick = (district: string) => {
-    const clean = district.trim();
-    // Route based on category
-    const basePath = (() => {
-      if (categoryId === 'travel') return '/travel-feed';
-      if (categoryId === 'medical') return '/medical-feed';
-      if (categoryId === 'service') return '/service-feed';
-      if (categoryId === 'ecommerce') return '/ecommerce-details';
-      return null;
-    })();
-    if (basePath) {
-      router.push(`/${basePath}/${categoryId}/${subCategoryId}/${clean}`);
-    } else {
-      alert('Coming soon!');
-    }
-  };
+  const allDistricts = bangladeshLocations[decodeURIComponent(params.divisionName)] || [];
+  const districts = allDistricts.filter(d => d.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-2">Districts in {divisionName}</h1>
-        <input
-          type="text"
-          placeholder="Search district..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 mb-6"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {filtered.map((district, index) => (
-            <motion.div
-              key={district}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.02 }}
-              className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow cursor-pointer hover:shadow-md transition"
-              onClick={() => handleDistrictClick(district)}
-            >
+    <div className="max-w-3xl mx-auto px-4 pt-8">
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">Districts in {decodeURIComponent(params.divisionName)}</h1>
+      <input 
+        type="text" placeholder="Search District..." onChange={(e) => setSearch(e.target.value)}
+        className="w-full mb-6 p-4 rounded-xl bg-white dark:bg-brand-card border-none focus:ring-2 focus:ring-brand-blue dark:text-white shadow-sm"
+      />
+      <div className="grid gap-3">
+        {districts.map((district) => (
+          <Link href={`/${params.categoryId}-feed/${params.categoryId}/${params.subCategoryId}/${district}`} key={district}>
+            <div className="p-4 bg-white dark:bg-brand-card rounded-lg hover:shadow-md transition dark:text-white">
               {district}
-            </motion.div>
-          ))}
-        </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

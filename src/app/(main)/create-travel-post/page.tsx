@@ -1,143 +1,55 @@
-'use client';
-
+'use client'
 import { useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { addDocument } from '@/firebase/firestore';
-import { TravelPost } from '@/types';
+import { createPost } from '@/firebase/firestore';
+import { useRouter } from 'next/navigation';
 import { bangladeshLocations } from '@/lib/constants/locations';
-import Header from '@/components/layout/Header';
-import toast from 'react-hot-toast';
 
-const allDistricts = Object.values(bangladeshLocations).flat();
-
-export default function CreateTravelPostPage() {
-  const searchParams = useSearchParams();
+export default function CreateTravelPost() {
   const router = useRouter();
-  const { user } = useAuth();
-  const isPassenger = searchParams.get('isPassenger') === 'true';
-
-  const [form, setForm] = useState<Partial<TravelPost>>({
-    fromDivision: 'Dhaka',
-    toDivision: 'Sylhet',
-    date: new Date().toISOString().split('T')[0],
-    time: '9:00 AM',
-    vehicleType: 'Car',
-    isPassengerPost: isPassenger,
-    hasFreeFood: false,
-    hasFreeLiving: false,
-    intermediateStops: [],
+  const allLocations = Object.values(bangladeshLocations).flat().sort();
+  const [formData, setFormData] = useState({
+    isPassenger: false, fromDivision: 'Dhaka', toDivision: 'Sylhet',
+    time: '', vehicleType: 'Car', driverName: '', contactNumber: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error('Please login first');
-      return;
-    }
-    try {
-      await addDocument('travelPosts', {
-        ...form,
-        userId: user.uid,
-        driverName: form.driverName || user.displayName || 'Anonymous',
-        contactNumber: form.contactNumber || '',
-      });
-      toast.success('Post created!');
-      router.back();
-    } catch (err) {
-      toast.error('Failed to create post');
-    }
+    await createPost('travel_posts', formData);
+    router.back();
   };
 
-  // Simplified form, full implementation would include all fields
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <h1 className="text-2xl font-bold mb-6">Create {isPassenger ? 'Passenger' : 'Rider'} Post</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">From</label>
-            <select
-              value={form.fromDivision}
-              onChange={(e) => setForm({ ...form, fromDivision: e.target.value })}
-              className="w-full p-2 border rounded"
-            >
-              {allDistricts.map(d => <option key={d}>{d}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">To</label>
-            <select
-              value={form.toDivision}
-              onChange={(e) => setForm({ ...form, toDivision: e.target.value })}
-              className="w-full p-2 border rounded"
-            >
-              {allDistricts.map(d => <option key={d}>{d}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Date</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Time</label>
-            <input
-              type="text"
-              value={form.time}
-              onChange={(e) => setForm({ ...form, time: e.target.value })}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. 9:00 AM"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Vehicle</label>
-            <select
-              value={form.vehicleType}
-              onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}
-              className="w-full p-2 border rounded"
-            >
-              <option>Car</option>
-              <option>Bike</option>
-              <option>MicroBus</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Contact Number</label>
-            <input
-              type="text"
-              value={form.contactNumber || ''}
-              onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div className="flex items-center gap-4">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.hasFreeFood}
-                onChange={(e) => setForm({ ...form, hasFreeFood: e.target.checked })}
-              /> Free Food
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={form.hasFreeLiving}
-                onChange={(e) => setForm({ ...form, hasFreeLiving: e.target.checked })}
-              /> Free Living
-            </label>
-          </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
-            Submit Post
-          </button>
-        </form>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 pt-8">
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">Create Travel Post</h1>
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-brand-card p-8 rounded-3xl shadow-xl">
+        <div className="flex gap-4 mb-6">
+          <label className="flex items-center gap-2 dark:text-white cursor-pointer">
+            <input type="radio" checked={!formData.isPassenger} onChange={() => setFormData({...formData, isPassenger: false})} /> Rider Offer
+          </label>
+          <label className="flex items-center gap-2 dark:text-white cursor-pointer">
+            <input type="radio" checked={formData.isPassenger} onChange={() => setFormData({...formData, isPassenger: true})} /> Passenger Request
+          </label>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <select className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" value={formData.fromDivision} onChange={e => setFormData({...formData, fromDivision: e.target.value})}>
+            {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+          <select className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" value={formData.toDivision} onChange={e => setFormData({...formData, toDivision: e.target.value})}>
+            {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <input type="time" required className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" onChange={e => setFormData({...formData, time: e.target.value})} />
+          <select className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" value={formData.vehicleType} onChange={e => setFormData({...formData, vehicleType: e.target.value})}>
+            <option>Car</option><option>Bike</option><option>MicroBus</option>
+          </select>
+        </div>
+        <input type="text" placeholder="Your Name" required className="w-full p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" onChange={e => setFormData({...formData, driverName: e.target.value})} />
+        <input type="tel" placeholder="Phone Number" required className="w-full p-3 rounded-xl bg-gray-100 dark:bg-gray-800 dark:text-white" onChange={e => setFormData({...formData, contactNumber: e.target.value})} />
+        <button type="submit" className="w-full bg-brand-blue text-white font-bold py-4 rounded-xl hover:opacity-90 transition">
+          PUBLISH POST
+        </button>
+      </form>
     </div>
   );
 }

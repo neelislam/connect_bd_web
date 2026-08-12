@@ -1,30 +1,17 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { AuthProvider } from '@/contexts/AuthContext';
+import '@/app/globals.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { Providers } from './providers'; // optional, for additional providers
+import Header from '@/components/layout/Header';
 
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'connect_bd',
-  description: 'Connecting people everywhere',
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider>
+    <html lang="en" className="dark">
+      <body className="min-h-screen bg-gradient-to-br from-[#F4F7FD] to-[#E0EAFC] dark:from-brand-dark dark:to-[#1D1E33] transition-colors duration-500">
+        <ThemeProvider>
+          <Header />
+          <main className="pt-20 pb-12">
             {children}
-          </ThemeProvider>
-        </AuthProvider>
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

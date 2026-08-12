@@ -1,71 +1,59 @@
-'use client';
-
+'use client'
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { db } from '@/firebase/clientApp';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { TravelPost } from '@/types';
-import Header from '@/components/layout/Header';
-import PostCard from '@/components/ui/PostCard';
+import { getPostsByDistrict } from '@/firebase/firestore';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { MapPin, Clock, Car } from 'lucide-react';
 
-export default function TravelFeedPage() {
-  const { districtName, subCategoryId } = useParams();
-  const { user } = useAuth();
-  const router = useRouter();
-  const [posts, setPosts] = useState<TravelPost[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function TravelFeed({ params }: { params: { districtName: string } }) {
+  const [posts, setPosts] = useState<any[]>([]);
+  const district = decodeURIComponent(params.districtName);
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'travelPosts'),
-      where('toDivision', '==', districtName),
-      orderBy('createdAt', 'desc')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: TravelPost[] = [];
-      snapshot.forEach(doc => {
-        data.push({ id: doc.id, ...doc.data() } as TravelPost);
-      });
+    const fetchPosts = async () => {
+      const data = await getPostsByDistrict('travel_posts', district);
       setPosts(data);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [districtName]);
+    };
+    fetchPosts();
+  }, [district]);
 
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Travel in {districtName}</h1>
-          <button
-            onClick={() => router.push(`/create-travel-post?isPassenger=${subCategoryId === 'travel_go' ? 'true' : 'false'}`)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-          >
-            + New Post
+    <div className="max-w-3xl mx-auto px-4 pt-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold dark:text-white">Travel in {district}</h1>
+        <Link href={`/create-travel-post?district=${district}`}>
+          <button className="bg-brand-blue text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:opacity-90">
+            + Post
           </button>
-        </div>
-        {loading ? (
-          <p>Loading...</p>
-        ) : posts.length === 0 ? (
-          <p className="text-gray-500">No posts in this district.</p>
-        ) : (
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {posts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <PostCard post={post} type="travel" />
-              </motion.div>
-            ))}
-          </div>
-        )}
+        </Link>
+      </div>
+
+      <div className="grid gap-6">
+        {posts.map((post) => (
+          <motion.div key={post.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+            className="bg-white/90 dark:bg-brand-card/90 backdrop-blur-md p-6 rounded-3xl border border-brand-blue/20 shadow-lg"
+          >
+            <div className="flex justify-between mb-4">
+              <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${post.isPassenger ? 'bg-red-500' : 'bg-brand-blue'}`}>
+                {post.isPassenger ? 'PASSENGER REQUEST' : 'RIDER OFFER'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <MapPin className="text-brand-blue" />
+              <h2 className="text-2xl font-black dark:text-white">{post.fromDivision} → {post.toDivision}</h2>
+            </div>
+            <div className="flex gap-6 mb-6">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300"><Clock size={18} /> {post.time}</div>
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300"><Car size={18} /> {post.vehicleType}</div>
+            </div>
+            <hr className="border-gray-200 dark:border-gray-700 my-4" />
+            <div className="flex justify-between items-center">
+              <span className="font-bold dark:text-white">{post.driverName}</span>
+              <a href={`tel:${post.contactNumber}`} className="bg-brand-blue text-white px-6 py-2 rounded-xl font-bold">Connect</a>
+            </div>
+          </motion.div>
+        ))}
+        {posts.length === 0 && <p className="text-center text-gray-500 py-10">No active posts found.</p>}
       </div>
     </div>
   );

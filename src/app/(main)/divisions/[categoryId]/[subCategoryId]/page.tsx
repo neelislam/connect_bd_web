@@ -1,36 +1,25 @@
-'use client';
-
-import { useParams, useRouter } from 'next/navigation';
-import { mockCategories, getSubCategory } from '@/lib/constants/mockData';
-import Header from '@/components/layout/Header';
+'use client'
+import { bangladeshLocations } from '@/lib/constants/locations';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 
-export default function DivisionListPage() {
-  const { categoryId, subCategoryId } = useParams();
-  const router = useRouter();
-  const sub = getSubCategory(categoryId as string, subCategoryId as string);
-  if (!sub) return <div>Sub-category not found</div>;
+export default function Divisions({ params }: { params: { categoryId: string, subCategoryId: string } }) {
+  const divisions = Object.keys(bangladeshLocations);
 
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">{sub.title}</h1>
-        <div className="space-y-3 max-w-lg mx-auto">
-          {sub.divisions.map((div, index) => (
-            <motion.div
-              key={div.divisionName}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow flex justify-between items-center cursor-pointer hover:shadow-md transition"
-              onClick={() => router.push(`/districts/${div.divisionName}/${categoryId}/${subCategoryId}`)}
+    <div className="max-w-3xl mx-auto px-4 pt-8">
+      <h1 className="text-3xl font-bold mb-8 dark:text-white">Select Division</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {divisions.map((div, index) => (
+          <Link href={`/districts/${div}/${params.categoryId}/${params.subCategoryId}`} key={div}>
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.05 }}
+              className="p-6 bg-white dark:bg-brand-card rounded-xl shadow-sm border border-transparent hover:border-brand-blue transition-colors"
             >
-              <span>{div.divisionName}</span>
-              <span className="text-sm text-gray-500">{div.count} posts</span>
+              <span className="text-lg font-bold dark:text-white">{div}</span>
             </motion.div>
-          ))}
-        </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
