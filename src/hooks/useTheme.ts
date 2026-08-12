@@ -1,5 +1,4 @@
-import { useThemeContext } from "@/contexts/ThemeContext";
+"use client";
 
-export function useTheme() {
-  return useThemeContext();
-}
+// Re-export the hook directly from the context
+export { useTheme } from "@/contexts/ThemeContext";
