@@ -1,4 +1,4 @@
-import './globals.css';
+import '@/app/globals.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
