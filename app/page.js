@@ -6,7 +6,8 @@ import { auth, googleProvider } from "../lib/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect, // Changed to Redirect
+  getRedirectResult,  // Added to catch redirect errors
   onAuthStateChanged,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -16,17 +17,32 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLogin, setIsLogin] = useState(true); 
-  
-  const router = useRouter(); // Initialize the router
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Prevents flickering during redirect
 
-  // Listen for Auth State Changes
+  const router = useRouter();
+
+  // Listen for Auth State Changes & Handle Redirect Results
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
+
+    // Catch any errors that happen when returning from the Google redirect
+    getRedirectResult(auth).catch((err) => {
+      setError(err.message);
+      setIsLoading(false);
+    });
+
     return () => unsubscribe(); // Cleanup subscription
   }, []);
+
+  // Safely redirect to dashboard if the user IS logged in
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   // Email/Password Authentication
   const handleAuth = async (e) => {
@@ -45,26 +61,24 @@ export default function Home() {
     }
   };
 
-  // Google Authentication
+  // Google Authentication (Now using Redirect)
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      setIsLoading(true); // Show loading text before the page unloads
+      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
       setError(err.message);
+      setIsLoading(false);
     }
   };
 
-  // Redirect to dashboard if the user IS logged in
-  // Safely redirect to dashboard if the user IS logged in
-  useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
-    }
-  }, [user, router]);
-
-  // Return null while redirecting so the login screen doesn't flash
-  if (user) {
-    return null; 
+  // Show a loading state while redirecting to avoid flashing the login screen
+  if (user || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-800">
+        Loading...
+      </div>
+    );
   }
 
   // UI if user is NOT logged in
