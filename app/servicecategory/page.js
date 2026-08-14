@@ -16,19 +16,15 @@ const categories = [
     id: "mechanic",
     title: "Vehicle Mechanics",
     icon: "🔧",
-    description: "Get your car or motorcycle repaired by trusted local experts.",
+    description:
+      "Get your car or motorcycle repaired by trusted local experts.",
   },
   {
     id: "pharmacy",
     title: "Pharmacy",
     icon: "💊",
-    description: "Find nearby pharmacies, medicines, and healthcare essentials.",
-  },
-  {
-    id: "airbnb",
-    title: "AirBNB",
-    icon: "🏠",
-    description: "Discover and book comfortable stays and accommodations.",
+    description:
+      "Find nearby pharmacies, medicines, and healthcare essentials.",
   },
   {
     id: "electrician",
@@ -42,6 +38,12 @@ const categories = [
     icon: "🛠️",
     description: "Expert technicians for appliances and general maintenance.",
   },
+  {
+    id: "rent",
+    title: "Rent Anything",
+    icon: "🤝🏻",
+    description: "Find and book rental items for short or long-term stays.",
+  },
 ];
 
 export default function ServiceCategoryScreen() {
@@ -50,7 +52,6 @@ export default function ServiceCategoryScreen() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        
         {/* Header Section */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -61,7 +62,7 @@ export default function ServiceCategoryScreen() {
               Select a category below to find exactly what you need.
             </p>
           </div>
-          
+
           <button
             onClick={() => router.push("/dashboard")}
             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition font-medium shadow-sm"
@@ -75,31 +76,31 @@ export default function ServiceCategoryScreen() {
           {categories.map((category) => (
             <div
               key={category.id}
-             onClick={() => {
-  if (category.id === "travel") {
-    router.push("/travel");
-  } else {
-    console.log(`Clicked on ${category.title}`);
-  }
-}}
+              onClick={() => {
+                if (category.id === "travel") {
+                  router.push("/travel");
+                } else if (category.id === "rent") {
+                  // Or whatever ID you gave the Rent Anything card
+                  router.push("/rentanything");
+                } else {
+                  console.log(`Clicked on ${category.title}`);
+                }
+              }}
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-md hover:border-blue-500 hover:-translate-y-1 transition duration-200 group"
             >
               {/* Icon Container */}
               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
                 {category.icon}
               </div>
-              
+
               {/* Text Content */}
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 {category.title}
               </h3>
-              <p className="text-gray-500 text-sm">
-                {category.description}
-              </p>
+              <p className="text-gray-500 text-sm">{category.description}</p>
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );
