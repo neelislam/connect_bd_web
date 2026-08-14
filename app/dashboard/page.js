@@ -57,6 +57,15 @@ export default function Dashboard() {
           >
             Log Out
           </button>
+
+
+          {/* Add this inside the flex container with your other buttons */}
+<Link
+  href="/servicecategory"
+  className="bg-green-600 text-white font-semibold px-6 py-2 rounded shadow hover:bg-green-700 transition"
+>
+  Browse Services
+</Link>
         </div>
       </div>
     </div>
