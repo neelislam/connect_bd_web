@@ -48,12 +48,12 @@ export default function Dashboard() {
 
   // Prevent hydration mismatch on load & check Auth
   useEffect(() => {
-    setMounted(true);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.push("/"); // Redirect to login if not logged in
       } else {
         setUser(currentUser);
+        setMounted(true);
       }
     });
     return () => unsubscribe();
