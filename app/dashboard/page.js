@@ -53,20 +53,27 @@ export default function Dashboard() {
             Create / Edit Profile
           </Link>
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white font-semibold px-6 py-2 rounded shadow hover:bg-red-600 transition"
-          >
-            Log Out
-          </button>
-
-          {/* Add this inside the flex container with your other buttons */}
           <Link
             href="/servicecategory"
             className="bg-green-600 text-white font-semibold px-6 py-2 rounded shadow hover:bg-green-700 transition"
           >
             Browse Services
           </Link>
+
+          {/* New Secondhand Market Button */}
+          <Link
+            href="/secondhandmarket"
+            className="bg-purple-600 text-white font-semibold px-6 py-2 rounded shadow hover:bg-purple-700 transition"
+          >
+            Secondhand Market
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white font-semibold px-6 py-2 rounded shadow hover:bg-red-600 transition ml-auto"
+          >
+            Log Out
+          </button>
         </div>
       </div>
     </div>
